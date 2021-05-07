@@ -11,7 +11,10 @@ import twitter
 load_dotenv()
 
 api = twitter.Api(access_token_key=os.environ.get('TWITTER_ACCESS_TOKEN_KEY'),
-                  access_token_secret=os.environ.get('TWITTER_ACCESS_TOKEN_SECRET'))
+                  access_token_secret=os.environ.get('TWITTER_ACCESS_TOKEN_SECRET'),
+                  consumer_key=os.environ.get('TWITTER_CONSUMER_KEY'),
+                  consumer_secret=os.environ.get('TWITTER_CONSUMER_SECRET')
+                  )
 
 app = Flask(__name__)
 
@@ -29,9 +32,6 @@ class TweetForm(FlaskForm):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    results = api.GetSearch(
-        raw_query="q=twitter%20&result_type=recent&since=2021-04-06&count=10")
-    print(results)
     form = TweetForm()
     message = ""
     if form.validate_on_submit():
