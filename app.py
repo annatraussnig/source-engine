@@ -38,15 +38,32 @@ def index():
     message = ""
     if form.validate_on_submit():
         url = form.url.data
-        find_original_tweet(url)
+        original_tweet_user_id = find_original_tweet_user_id(url)
+        print(original_tweet_user_id)
         message = "Looking for tweet source"
     return render_template('tweet.html', form=form, message=message)
 
 
-def find_original_tweet(url):
+def find_original_tweet_user_id(url):
     status_id = url.split('status/')[1].split('?')[0]
     status = json.loads(api.GetStatus(status_id).AsJsonString())
-    print(status)
+
+    hashtag_string = ' AND '.join([f'%23{hashtag["text"]}' for hashtag in status['hashtags']])
+    result = api.GetSearch(
+        raw_query=f"q={hashtag_string}&count=200", return_json=True)['statuses']
+
+    print(result)
+
+    while len(result) == 200:
+        result = api.GetSearch(raw_query=f"q={hashtag_string}&count=200&max_id={result[-1]['id']}", return_json=True)[
+            'statuses']
+
+    if not result:
+        original_tweet = status
+    else:
+        original_tweet = json.loads(api.GetStatus(result[-1]['id']).AsJsonString())
+
+    return original_tweet['user']['id']
 
 
 # keep this as is
