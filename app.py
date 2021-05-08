@@ -4,15 +4,20 @@ from datetime import datetime
 
 import twitter
 import requests
+import urllib.parse
 from dotenv import load_dotenv
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
+from urllib.parse import urlparse
 
 import nltk
+
 nltk.download('averaged_perceptron_tagger')
+nltk.download('vader_lexicon')
+
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from rake_nltk import Rake
 
@@ -38,6 +43,7 @@ analyzer = SentimentIntensityAnalyzer()
 rake_nltk_var = Rake()
 is_noun = lambda pos: pos[:2] == 'NN'
 
+
 class TweetForm(FlaskForm):
     url = StringField('Tweet Url:', validators=[DataRequired()])
     submit = SubmitField('Submit')
@@ -54,7 +60,7 @@ def index():
         original_tweet = find_original_tweet(url)
         original_tweet_html = get_inline_html_for_tweet('https://twitter.com/blank/status/' + original_tweet[
             'id_str'])  # the URL construction is hacky but seems to work
-        analyze_timeline()
+        data = analyze_timeline(original_tweet['user']['id'])
         message = "Looking for tweet source"
     return render_template('tweet.html', form=form, message=message, searched_tweet=searched_tweet_html,
                            original_tweet=original_tweet_html)
@@ -70,17 +76,27 @@ def get_inline_html_for_tweet(url):
     else:
         return '<p>Tweet not found</p>'
 
+
 def find_original_tweet(url):
     status_id = url.split('status/')[1].split('?')[0]
     status = json.loads(api.GetStatus(status_id).AsJsonString())
     status = status['retweeted_status'] if 'retweeted_status' in status else status
 
-    hashtag_string = ' AND '.join(
-        [f'%23{hashtag["text"]}' for hashtag in status['hashtags']])
+    search_string = ""
+    if status['hashtags']:
+        search_string = ' AND '.join(
+            [f'%23{hashtag["text"]}' for hashtag in status['hashtags']])
+    elif status['urls']:
+        search_string = ' AND '.join(
+            [f'url%3A{urllib.parse.quote(url["expanded_url"])}' for url in status['urls']])
+        print(search_string)
+    else:
+        print(status)
 
-    result = get_sorted_tweet_list(f"q={hashtag_string}&count=100&result_type=recent")
+
+    result = get_sorted_tweet_list(f"q={search_string}&count=100&result_type=recent")
     while len(result) == 100:
-        tweets = get_sorted_tweet_list(f"q={hashtag_string}&count=100&result_type=recent&max_id={result[-1]['id']}")
+        tweets = get_sorted_tweet_list(f"q={search_string}&count=100&result_type=recent&max_id={result[-1]['id']}")
         if not tweets:
             break
         else:
@@ -93,20 +109,48 @@ def find_original_tweet(url):
             api.GetStatus(result[-1]['id']).AsJsonString())
     return original_tweet
 
-def analyze_timeline():
-    tweets = api.GetUserTimeline(screen_name="BarackObama")
+
+# user_id default to Barack Obama for testing
+def analyze_timeline(user_id=813286):
+    user = api.GetUser(user_id=user_id, return_json=True)
+    # we restrict ourselves to the last 1000 tweets for api rate limiting reasons
+    tweets = api.GetUserTimeline(user_id=user_id, count=200)
+    for i in range(4):
+        res = api.GetUserTimeline(user_id=user_id, count=200, max_id=tweets[-1].id)
+        if res:
+            tweets += res
+        else:
+            break
+
+    words = []
     for tweet in tweets:
         text = tweet.full_text
-        print(tweet.full_text)
         polarity = analyzer.polarity_scores(text)
-        print(polarity)
         rake_nltk_var.extract_keywords_from_text(text)
         keyword_extracted = rake_nltk_var.get_ranked_phrases()[0:3]
-        print(keyword_extracted)
         tokenized = nltk.word_tokenize(text)
         nouns = [word for (word, pos) in nltk.pos_tag(tokenized) if is_noun(pos)]
-        print(nouns)
-        print('\n\n')
+        for noun in nouns:
+            found = False
+            for word in words:
+                if word['word'] == noun:
+                    word['count'] += 1
+                    word['avg_tweet_sentiment'] = ((word['count'] - 1) * word['avg_tweet_sentiment'] + polarity[
+                        'compound']) / word['count']
+                    found = True
+            if not found:
+                words.append({
+                    'word': noun,
+                    'count': 1,
+                    'avg_tweet_sentiment': polarity['compound']
+                })
+    return {
+        'name': user['name'],
+        'description': user['description'],
+        'profile_image_url': user['profile_image_url'],
+        'words': words,
+    }
+
 
 def created_at_to_date(created_at):
     date = datetime.strptime(created_at, '%a %b %d %H:%M:%S +0000 %Y')
