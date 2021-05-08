@@ -54,19 +54,18 @@ def index():
     message = ""
     searched_tweet_html = ""
     original_tweet_html = ""
+    timeline_data = ""
     if form.validate_on_submit():
         url = form.url.data
         searched_tweet_html = get_inline_html_for_tweet(url)
         original_tweet = find_original_tweet(url)
         original_tweet_html = get_inline_html_for_tweet('https://twitter.com/blank/status/' + original_tweet[
             'id_str'])  # the URL construction is hacky but seems to work
-        data = analyze_timeline(original_tweet['user']['id'])
+        timeline_data = analyze_timeline(original_tweet['user']['id'])
+        print(timeline_data)
         message = "Looking for tweet source"
     return render_template('tweet.html', form=form, message=message, searched_tweet=searched_tweet_html,
-                           original_tweet=original_tweet_html)
-
-
-
+                           original_tweet=original_tweet_html,timeline_data=json.dumps(timeline_data))
 
 
 def get_inline_html_for_tweet(url):

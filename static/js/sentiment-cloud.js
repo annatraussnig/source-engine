@@ -6,42 +6,39 @@ var margin = {top: 50, right: 50, bottom: 50, left: 50},
   maxRadius = 1000,
   numberOfNodes = 50;
 
-// Create random node data.
-var data = d3.range(numberOfNodes).map(function() {
-  var value = Math.floor(Math.random() * 50) / 10,
-    size = Math.floor( Math.sqrt((value + 1) / numberOfNodes * -Math.log(Math.random())) * maxRadius * 10 ),
-    datum = {value: value, size: size};
-  return datum;
-});
-
 var x = d3.scale.linear()
   .domain( [0, 5] )
   .range( [margin.left, width + margin.right ] );
 
 // Map the basic node data to d3-friendly format.
-var nodes = data.map(function(node, index) {
-  return {
-    idealradius: node.size / 100,
-    radius: 0,
-    // Give each node a random color.
-    color: '#ff7f0e',
-    // Set the node's gravitational centerpoint.
-    idealcx: x(node.value),
-    idealcy: height / 2,
-    x: x(node.value),
-    // Add some randomization to the placement;
-    // nodes stacked on the same point can produce NaN errors.
-    y: height / 2 + Math.random()
-  };
-});
+function getNodes(data) {
+  return data.map(function(node, index) {
+    return {
+      idealradius: node.count / 100,
+      radius: 0,
+      // Give each node a random color.
+      color: '#ff7f0e',
+      // Set the node's gravitational centerpoint.
+      idealcx: x(node.avg_tweet_sentiment),
+      idealcy: height / 2,
+      x: x(node.avg_tweet_sentiment),
+      // Add some randomization to the placement;
+      // nodes stacked on the same point can produce NaN errors.
+      y: height / 2 + Math.random(),
+      text: node.word
+    };
+  });
+}
 
-var force = d3.layout.force()
-  .nodes(nodes)
-  .size([width, height])
-  .gravity(0)
-  .charge(0)
-  .on("tick", tick)
-  .start();
+function getForce(nodes) {
+  d3.layout.force()
+    .nodes(nodes)
+    .size([width, height])
+    .gravity(0)
+    .charge(0)
+    .on("tick", tick)
+    .start();
+}
 
 var xAxis = d3.svg.axis()
   .scale(x);
@@ -125,11 +122,14 @@ function collide(alpha) {
  * Run the force layout to compute where each node should be placed,
  * then replace the loading text with the graph.
  */
-function renderGraph() {
-  console.log('redenring')
+function renderGraph(data) {
+  console.log("data", data)
   // Run the layout a fixed number of times.
   // The ideal number of times scales with graph complexity.
   // Of course, don't run too long—you'll hang the page!
+  var nodes = getNodes(data)
+  var force = getForce(nodes)
+
   force.start();
   for (var i = 100; i > 0; --i) force.tick();
   force.stop();
@@ -149,5 +149,3 @@ function renderGraph() {
 
   loading.remove();
 }
-// Use a timeout to allow the rest of the page to load first.
-setTimeout(renderGraph, 10);
