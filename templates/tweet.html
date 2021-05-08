@@ -3,9 +3,6 @@
 
 {% block head %}
     {{ super() }}
-    {% block title %}
-        Source Engine
-    {% endblock %}
     <link href="/static/css/styles.css" rel="stylesheet">
     <script src="/static/js/libs/d3.v3.min.js"></script>
 {% endblock %}
@@ -13,7 +10,9 @@
 
 {% block content %}
 
-<div class="container">
+<h1>Source Engine (for Twitter)</h1>
+
+<div class="container text-left">
     <div class="row">
         <div class="col-md-10 col-lg-8 mx-lg-auto mx-md-auto">
 
@@ -39,7 +38,9 @@
     </div>
 </div>
 
-<div id="sentiment"></div>
+<div id="sentiment">
+    <h3>What has that person been talking about?</h3>
+</div>
 
 <script src="/static/js/sentiment-cloud.js"></script>
 <script>
