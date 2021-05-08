@@ -154,7 +154,7 @@ def analyze_timeline(user_id=813286):
     punctuation = {c for i in codepoints if category(c := chr(i)).startswith("P")}
     stop_words = stop_words.union(punctuation)
     stop_words = stop_words.union(['https', '@', '’', 's', '%', '-', '–'])
-    words = [word for word in words if word['word'] not in stop_words]
+    words = [word for word in words if word['word'].lower() not in stop_words]
     words = sorted(words, key=lambda k: k['count'], reverse=True)[:50]
     return {
         'name': user['name'],
