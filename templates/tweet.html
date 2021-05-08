@@ -8,7 +8,6 @@
     {% endblock %}
     <link href="/static/css/styles.css" rel="stylesheet">
     <script src="/static/js/libs/d3.v3.min.js"></script>
-    <script src="/static/js/sentiment-cloud.js"></script>
 {% endblock %}
 
 
@@ -42,6 +41,7 @@
 
 <div id="sentiment"></div>
 
+<script src="/static/js/sentiment-cloud.js"></script>
 <script>
     setTimeout(function() { renderGraph({{ timeline_data|safe }}) }, 10);
 </script>

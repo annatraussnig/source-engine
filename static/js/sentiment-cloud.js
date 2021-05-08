@@ -43,7 +43,7 @@ function getForce(nodes) {
 var xAxis = d3.svg.axis()
   .scale(x);
 
-var svg = d3.select("body")
+var svg = d3.select("#sentiment")
   .append("svg:svg")
   .attr("width", width + margin.left + margin.right)
   .attr("height", height + margin.top + margin.bottom);
