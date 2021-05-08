@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 
 import twitter
 import requests
@@ -44,16 +45,16 @@ def index():
         url = form.url.data
         searched_tweet_html = get_inline_html_for_tweet(url)
         original_tweet = find_original_tweet(url)
-        original_tweet_html = get_inline_html_for_tweet('https://twitter.com/blank/status/'+original_tweet['id_str']) # the URL construction is hacky but seems to work
-        print(original_tweet['user']['id'])
+        original_tweet_html = get_inline_html_for_tweet('https://twitter.com/blank/status/' + original_tweet[
+            'id_str'])  # the URL construction is hacky but seems to work
         message = "Looking for tweet source"
-    return render_template('tweet.html', form=form, message=message, searched_tweet=searched_tweet_html, original_tweet=original_tweet_html)
+    return render_template('tweet.html', form=form, message=message, searched_tweet=searched_tweet_html,
+                           original_tweet=original_tweet_html)
 
 
 def get_inline_html_for_tweet(url):
-    response = requests.get('https://publish.twitter.com/oembed?url='+url)
+    response = requests.get('https://publish.twitter.com/oembed?url=' + url)
     if response:
-        print(response.json()['html'])
         return response.json()['html']
     else:
         return '<p>Tweet not found</p>'
@@ -62,25 +63,41 @@ def get_inline_html_for_tweet(url):
 def find_original_tweet(url):
     status_id = url.split('status/')[1].split('?')[0]
     status = json.loads(api.GetStatus(status_id).AsJsonString())
+    status = status['retweeted_status'] if 'retweeted_status' in status else status
 
     hashtag_string = ' AND '.join(
         [f'%23{hashtag["text"]}' for hashtag in status['hashtags']])
-    result = api.GetSearch(
-        raw_query=f"q={hashtag_string}&count=200", return_json=True)['statuses']
 
-    #print(result)
-
-    while len(result) == 200:
-        result = api.GetSearch(raw_query=f"q={hashtag_string}&count=200&max_id={result[-1]['id']}", return_json=True)[
-            'statuses']
+    result = get_sorted_tweet_list(f"q={hashtag_string}&count=100&result_type=recent")
+    while len(result) == 100:
+        tweets = get_sorted_tweet_list(f"q={hashtag_string}&count=100&result_type=recent&max_id={result[-1]['id']}")
+        if not tweets:
+            break
+        else:
+            result = tweets
 
     if not result:
         original_tweet = status
     else:
         original_tweet = json.loads(
             api.GetStatus(result[-1]['id']).AsJsonString())
-
     return original_tweet
+
+
+def created_at_to_date(created_at):
+    date = datetime.strptime(created_at, '%a %b %d %H:%M:%S +0000 %Y')
+    return date
+
+
+def flatten_retweets(tweet_list):
+    return [tweet['retweeted_status'] if 'retweeted_status' in tweet else tweet for tweet in tweet_list]
+
+
+def get_sorted_tweet_list(query):
+    result = api.GetSearch(raw_query=query, result_type='recent', return_json=True)['statuses']
+    result = flatten_retweets(result)
+    result.sort(key=lambda k: created_at_to_date(k['created_at']), reverse=True)
+    return result
 
 
 # keep this as is
