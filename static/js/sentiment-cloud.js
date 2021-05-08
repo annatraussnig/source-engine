@@ -150,15 +150,13 @@ function renderGraph(data) {
 
   /*Create the circle for each block */
   var circle = elemEnter.append("circle")
-    .style("fill", function(d) { return d.color; })
+    .style("fill", function(d) { return "#FF8C00"; })
     .attr("r", function(d){return d.radius} )
-    .attr("stroke","#ccc")
 
   /* Create the text for each block */
   elemEnter.append("text")
     .attr("text-anchor", "middle")
-    .attr("text-stroke-width", 0.5)
-    .attr("text-stroke-color", "#fff")
+    .attr("fill", "#fff")
     .text(function(d){return d.text})
 
   loading.remove();
