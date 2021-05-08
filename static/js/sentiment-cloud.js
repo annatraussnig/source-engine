@@ -1,30 +1,30 @@
 var margin = {top: 50, right: 50, bottom: 50, left: 50},
-  width = 960 - margin.left - margin.right,
-  height = 500 - margin.top - margin.bottom,
+  width = window.innerWidth - margin.left - margin.right,
+  height = 750 - margin.top - margin.bottom,
   // padding between nodes
   padding = 2,
   maxRadius = 1000,
   numberOfNodes = 50;
 
 var x = d3.scale.linear()
-  .domain( [0, 5] )
+  .domain( [-1, 1] )
   .range( [margin.left, width + margin.right ] );
 
 // Map the basic node data to d3-friendly format.
 function getNodes(data) {
   return data.map(function(node, index) {
     return {
-      idealradius: node.count / 100,
+      idealradius: node.count * 4,
       radius: 0,
       // Give each node a random color.
       color: '#ff7f0e',
       // Set the node's gravitational centerpoint.
       idealcx: x(node.avg_tweet_sentiment),
-      idealcy: height / 2,
+      idealcy: (height / 2) + ((Math.random() - 0.5) * (height - node.count * 4)),
       x: x(node.avg_tweet_sentiment),
       // Add some randomization to the placement;
       // nodes stacked on the same point can produce NaN errors.
-      y: height / 2 + Math.random(),
+      y: height / 2 + 3 * Math.random(),
       text: node.word
     };
   });

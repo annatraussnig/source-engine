@@ -143,7 +143,7 @@ def analyze_timeline(user_id=813286):
                     'avg_tweet_sentiment': polarity['compound']
                 })
     words = [word for word in words if word['word'] not in ['https', '@', '’', 's']]
-    words = sorted(words, key=lambda k: k['count'], reverse=True)[:30]
+    words = sorted(words, key=lambda k: k['count'], reverse=True)[:50]
     return {
         'name': user['name'],
         'description': user['description'],
