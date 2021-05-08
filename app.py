@@ -4,12 +4,14 @@ from datetime import datetime
 
 import twitter
 import requests
+import urllib.parse
 from dotenv import load_dotenv
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
+from urllib.parse import urlparse
 
 import nltk
 nltk.download('averaged_perceptron_tagger')
@@ -75,12 +77,21 @@ def find_original_tweet(url):
     status = json.loads(api.GetStatus(status_id).AsJsonString())
     status = status['retweeted_status'] if 'retweeted_status' in status else status
 
-    hashtag_string = ' AND '.join(
-        [f'%23{hashtag["text"]}' for hashtag in status['hashtags']])
+    search_string = ""
+    if status['hashtags']:
+        search_string = ' AND '.join(
+            [f'%23{hashtag["text"]}' for hashtag in status['hashtags']])
+    elif status['urls']:
+        search_string = ' AND '.join(
+            [f'url%3A{urllib.parse.quote(url["expanded_url"])}' for url in status['urls']])
+        print(search_string)
+    else:
+        print(status)
 
-    result = get_sorted_tweet_list(f"q={hashtag_string}&count=100&result_type=recent")
+
+    result = get_sorted_tweet_list(f"q={search_string}&count=100&result_type=recent")
     while len(result) == 100:
-        tweets = get_sorted_tweet_list(f"q={hashtag_string}&count=100&result_type=recent&max_id={result[-1]['id']}")
+        tweets = get_sorted_tweet_list(f"q={search_string}&count=100&result_type=recent&max_id={result[-1]['id']}")
         if not tweets:
             break
         else:
