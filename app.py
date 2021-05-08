@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from datetime import datetime
 
 import twitter
@@ -12,6 +13,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from urllib.parse import urlparse
+from nltk.corpus import stopwords
+from unicodedata import category
 
 import nltk
 
@@ -145,7 +148,13 @@ def analyze_timeline(user_id=813286):
                     'count': 1,
                     'avg_tweet_sentiment': polarity['compound']
                 })
-    words = [word for word in words if word['word'] not in ['https', '@', '’', 's']]
+    # Filter list for stopwords and punctuation
+    stop_words = set(stopwords.words())
+    codepoints = range(sys.maxunicode + 1)
+    punctuation = {c for i in codepoints if category(c := chr(i)).startswith("P")}
+    stop_words = stop_words.union(punctuation)
+    stop_words = stop_words.union(['https', '@', '’', 's', '%', '-', '–'])
+    words = [word for word in words if word['word'] not in stop_words]
     words = sorted(words, key=lambda k: k['count'], reverse=True)[:50]
     return {
         'name': user['name'],
