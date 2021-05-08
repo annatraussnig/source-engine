@@ -60,10 +60,13 @@ def index():
         url = form.url.data
         searched_tweet_html = get_inline_html_for_tweet(url)
         original_tweet = find_original_tweet(url)
-        original_tweet_html = get_inline_html_for_tweet('https://twitter.com/blank/status/' + original_tweet[
-            'id_str'])  # the URL construction is hacky but seems to work
-        timeline_data = analyze_timeline(original_tweet['user']['id'])
-        print(timeline_data)
+        if original_tweet:
+            original_tweet_html = get_inline_html_for_tweet('https://twitter.com/blank/status/' + original_tweet[
+                'id_str'])  # the URL construction is hacky but seems to work
+            timeline_data = analyze_timeline(original_tweet['user']['id'])
+            print(timeline_data)
+        else:
+            original_tweet_html = '<p>At the moment we only analyze tweets with hashtags or links</p>'
         message = "Looking for tweet source"
     return render_template('tweet.html', form=form, message=message, searched_tweet=searched_tweet_html,
                            original_tweet=original_tweet_html, timeline_data=json.dumps(timeline_data))
@@ -90,7 +93,7 @@ def find_original_tweet(url):
         search_string = ' AND '.join(
             [f'url%3A{urllib.parse.quote(url["expanded_url"], safe="")}' for url in status['urls']])
     else:
-        print(status)
+        return None
 
     result = get_sorted_tweet_list(f"q={search_string}&count=100&result_type=recent")
     while len(result) == 100:
