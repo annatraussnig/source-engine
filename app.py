@@ -151,7 +151,8 @@ def analyze_timeline(user_id=813286):
     # Filter list for stopwords and punctuation
     stop_words = set(stopwords.words())
     codepoints = range(sys.maxunicode + 1)
-    punctuation = {c for i in codepoints if category(c := chr(i)).startswith("P")}
+    chrs = (chr(i) for i in range(sys.maxunicode + 1))
+    punctuation = set(c for c in chrs if category(c).startswith("P"))
     stop_words = stop_words.union(punctuation)
     stop_words = stop_words.union(['https', '@', '’', 's', '%', '-', '–'])
     words = [word for word in words if word['word'].lower() not in stop_words]
