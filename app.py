@@ -86,8 +86,7 @@ def find_original_tweet(url):
             [f'%23{hashtag["text"]}' for hashtag in status['hashtags']])
     elif status['urls']:
         search_string = ' AND '.join(
-            [f'url%3A{urllib.parse.quote(url["expanded_url"])}' for url in status['urls']])
-        print(search_string)
+            [f'url%3A{urllib.parse.quote(url["expanded_url"], safe="")}' for url in status['urls']])
     else:
         print(status)
 
