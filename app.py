@@ -13,6 +13,8 @@ from wtforms.validators import DataRequired
 
 import nltk
 nltk.download('averaged_perceptron_tagger')
+nltk.download('vader_lexicon')
+
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from rake_nltk import Rake
 
