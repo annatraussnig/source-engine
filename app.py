@@ -48,6 +48,7 @@ class TweetForm(FlaskForm):
     url = StringField('Tweet Url:', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = TweetForm()
@@ -65,7 +66,7 @@ def index():
         print(timeline_data)
         message = "Looking for tweet source"
     return render_template('tweet.html', form=form, message=message, searched_tweet=searched_tweet_html,
-                           original_tweet=original_tweet_html,timeline_data=json.dumps(timeline_data))
+                           original_tweet=original_tweet_html, timeline_data=json.dumps(timeline_data))
 
 
 def get_inline_html_for_tweet(url):
@@ -90,7 +91,6 @@ def find_original_tweet(url):
             [f'url%3A{urllib.parse.quote(url["expanded_url"], safe="")}' for url in status['urls']])
     else:
         print(status)
-
 
     result = get_sorted_tweet_list(f"q={search_string}&count=100&result_type=recent")
     while len(result) == 100:
@@ -142,6 +142,8 @@ def analyze_timeline(user_id=813286):
                     'count': 1,
                     'avg_tweet_sentiment': polarity['compound']
                 })
+    words = [word for word in words if word['word'] not in ['https', '@', '’', 's']]
+    words = sorted(words, key=lambda k: k['count'], reverse=True)[:30]
     return {
         'name': user['name'],
         'description': user['description'],
