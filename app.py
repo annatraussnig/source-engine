@@ -42,7 +42,6 @@ class TweetForm(FlaskForm):
     url = StringField('Tweet Url:', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = TweetForm()
@@ -59,6 +58,9 @@ def index():
         message = "Looking for tweet source"
     return render_template('tweet.html', form=form, message=message, searched_tweet=searched_tweet_html,
                            original_tweet=original_tweet_html)
+
+
+
 
 
 def get_inline_html_for_tweet(url):
