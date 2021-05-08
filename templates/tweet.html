@@ -34,15 +34,14 @@
                     {% endif %}
                 </div>
             </div>
-
+            
 
         </div>
     </div>
 </div>
 
 <script>
-    console.log({{ timeline_data|tojson|safe }})
-    //setTimeout(function() { renderGraph() }, 10);
+    setTimeout(function() { renderGraph({{ timeline_data|safe }}) }, 10);
 </script>
 
 {% endblock %}

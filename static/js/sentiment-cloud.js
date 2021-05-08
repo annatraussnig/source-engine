@@ -31,7 +31,7 @@ function getNodes(data) {
 }
 
 function getForce(nodes) {
-  d3.layout.force()
+  return d3.layout.force()
     .nodes(nodes)
     .size([width, height])
     .gravity(0)
@@ -122,16 +122,22 @@ function collide(alpha) {
  * Run the force layout to compute where each node should be placed,
  * then replace the loading text with the graph.
  */
+var nodes
+
 function renderGraph(data) {
+  if(!data)
+  {
+    return
+  }
   console.log("data", data)
   // Run the layout a fixed number of times.
   // The ideal number of times scales with graph complexity.
   // Of course, don't run too long—you'll hang the page!
-  var nodes = getNodes(data)
+  nodes = getNodes(data.words)
   var force = getForce(nodes)
 
   force.start();
-  for (var i = 100; i > 0; --i) force.tick();
+  for (var i = 10; i > 0; --i) force.tick();
   force.stop();
 
   svg.append("g")
