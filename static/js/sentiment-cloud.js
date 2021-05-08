@@ -2,8 +2,8 @@ var margin = {top: 50, right: 50, bottom: 50, left: 50},
   width = window.innerWidth - margin.left - margin.right,
   height = 750 - margin.top - margin.bottom,
   // padding between nodes
-  padding = 2,
-  maxRadius = 1000,
+  padding = 25,
+  maxRadius = 200,
   numberOfNodes = 50;
 
 var x = d3.scale.linear()
@@ -14,17 +14,17 @@ var x = d3.scale.linear()
 function getNodes(data) {
   return data.map(function(node, index) {
     return {
-      idealradius: node.count * 4,
+      idealradius: node.count * 5,
       radius: 0,
       // Give each node a random color.
-      color: '#ff7f0e',
+      color: '#fff',
       // Set the node's gravitational centerpoint.
       idealcx: x(node.avg_tweet_sentiment),
-      idealcy: (height / 2) + ((Math.random() - 0.5) * (height - node.count * 4)),
+      idealcy: height / 2,
       x: x(node.avg_tweet_sentiment),
       // Add some randomization to the placement;
       // nodes stacked on the same point can produce NaN errors.
-      y: height / 2 + 3 * Math.random(),
+      y: height / 2 + ((Math.random() - 0.25) * (height - margin.top - margin.bottom - node.count * 5)),
       text: node.word
     };
   });
@@ -35,7 +35,7 @@ function getForce(nodes) {
     .nodes(nodes)
     .size([width, height])
     .gravity(0)
-    .charge(0)
+    .charge(0.5)
     .on("tick", tick)
     .start();
 }
@@ -43,7 +43,8 @@ function getForce(nodes) {
 var xAxis = d3.svg.axis()
   .scale(x);
 
-var svg = d3.select("body").append("svg")
+var svg = d3.select("body")
+  .append("svg:svg")
   .attr("width", width + margin.left + margin.right)
   .attr("height", height + margin.top + margin.bottom);
 
@@ -129,7 +130,6 @@ function renderGraph(data) {
   {
     return
   }
-  console.log("data", data)
   // Run the layout a fixed number of times.
   // The ideal number of times scales with graph complexity.
   // Of course, don't run too long—you'll hang the page!
@@ -140,18 +140,26 @@ function renderGraph(data) {
   for (var i = 10; i > 0; --i) force.tick();
   force.stop();
 
-  svg.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + ( margin.top + ( height * 3/4 ) ) + ")")
-    .call(xAxis);
-
-  var circle = svg.selectAll("circle")
+  var elem = svg.selectAll("g myCircleText")
     .data(nodes)
-    .enter().append("circle")
+
+  /*Create and place the "blocks" containing the circle and the text */
+  var elemEnter = elem.enter()
+    .append("g")
+    .attr("transform", function(d){return "translate("+d.x+","+d.y+")"})
+
+  /*Create the circle for each block */
+  var circle = elemEnter.append("circle")
     .style("fill", function(d) { return d.color; })
-    .attr("cx", function(d) { return d.x} )
-    .attr("cy", function(d) { return d.y} )
-    .attr("r", function(d) { return d.radius} );
+    .attr("r", function(d){return d.radius} )
+    .attr("stroke","#ccc")
+
+  /* Create the text for each block */
+  elemEnter.append("text")
+    .attr("text-anchor", "middle")
+    .attr("text-stroke-width", 0.5)
+    .attr("text-stroke-color", "#fff")
+    .text(function(d){return d.text})
 
   loading.remove();
 }

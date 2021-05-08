@@ -1,10 +1,11 @@
 body {
-    background: lightyellow;
-    color: blue;
+    background: linear-gradient(90deg, rgba(51,7,106,1) 0%, rgba(9,121,108,1) 70%, rgba(222,244,243,1) 100%);
+    color: white;
 }
 
 svg {
     font: 10px sans-serif;
+    text-shadow: 1px 0 0 rgba(255,255,255,0.5), -1px 0 0 rgba(255,255,255,0.5), 0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(255,255,255,0.5), 1px 1px rgba(255,255,255,0.5), -1px -1px 0 rgba(255,255,255,0.5), 1px -1px 0 rgba(255,255,255,0.5), -1px 1px 0 rgba(255,255,255,0.5);
 }
 .x.axis .domain {
     fill: none;
