@@ -15,7 +15,21 @@ Source Engine
 
             {{ wtf.quick_form(form) }}
 
-            <p class="pt-5"><strong>{{ message }}</strong></p>
+            <div class="row">
+                <div class="col-6">
+                    <h2>Search tweet</h2>
+                    {% if searched_tweet %}
+                    {{ searched_tweet|safe }}
+                    {% endif %}
+                </div>
+                <div class="col-6">
+                    <h2>Original Tweet</h2>
+                    {% if original_tweet %}
+                    {{ original_tweet|safe }}
+                    {% endif %}
+                </div>
+            </div>
+
 
         </div>
     </div>
